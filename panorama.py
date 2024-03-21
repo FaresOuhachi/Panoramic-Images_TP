@@ -42,7 +42,15 @@ def fit_transform_matrix(p0, p1):
     
     #TODO 1 : Calculez la matrice de transformation H.
     # TODO-BLOC-DEBUT
-    raise NotImplementedError("TODO 1 : dans panorama.py non implémenté")
+    A = []
+    for i in range(len(p0)):
+        x0, y0 = p0[i]
+        x1, y1 = p1[i]
+        A.append([-x0, -y0, -1, 0, 0, 0, x0*x1, y0*x1, x1])
+        A.append([0, 0, 0, -x0, -y0, -1, x0*y1, y0*y1, y1])
+    _, _, V = np.linalg.svd(np.array(A))
+    H = V[-1, :].reshape(3, 3)
+    # raise NotImplementedError("TODO 1 : dans panorama.py non implémenté")
     # TODO-BLOC-FIN
 
     return H
@@ -85,8 +93,28 @@ def ransac(keypoints1, keypoints2, matches, n_iters=500, threshold=1):
     
     #TODO 2 : Implémentez ici la méthode RANSAC pour trouver une transformation robuste
     # entre deux images image1 et image2.
-    # TODO-BLOC-DEBUT    
-    raise NotImplementedError("TODO 2 : dans panorama.py non implémenté")       
+    # TODO-BLOC-DEBUT
+    for _ in range(n_iters):
+        indices = random.sample(range(len(matches)), 4)
+        src_points = np.array([keypoints1[matches[i][0]] for i in indices])
+        dst_points = np.array([keypoints2[matches[i][1]] for i in indices])
+        H_matrix = fit_transform_matrix(src_points, dst_points)
+        inliers = []
+        for i, match in enumerate(matches):
+            src_point = np.array(keypoints1[match[0]])
+            dst_point = np.array(keypoints2[match[1]])
+            projected_point = np.dot(H_matrix, np.append(src_point, 1))
+            projected_point /= projected_point[2]  # Normalize
+            distance = np.linalg.norm(projected_point[:2] - dst_point)
+            if distance < threshold:
+                inliers.append(i)
+        if len(inliers) > len(max_inliers):
+            max_inliers = inliers
+            H = H_matrix
+    src_points = np.array([keypoints1[matches[i][0]] for i in max_inliers])
+    dst_points = np.array([keypoints2[matches[i][1]] for i in max_inliers])
+    H = fit_transform_matrix(src_points, dst_points)
+    # raise NotImplementedError("TODO 2 : dans panorama.py non implémenté")
     # TODO-BLOC-FIN
     
     return H, matches[max_inliers]
@@ -192,8 +220,8 @@ def warp_image(img, H, output_shape, offset, method=None):
     # TODO 5 : Dans un deuxième temps, implémentez la partie du code dans cette
     # fonction (contrôlée avec le paramètre 'method' donné ci-dessus) qui calcule 
     # les coefficients du canal alpha de l'image transformée.
-    # TODO-BLOC-DEBUT    
-    raise NotImplementedError("TODO 3/5 : dans panorama.py non implémenté")    
+    # TODO-BLOC-DEBUT
+    raise NotImplementedError("TODO 3/5 : dans panorama.py non implémenté")
     # TODO-BLOC-FIN
     
     return image_warped, mask
